@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
@@ -13,33 +14,50 @@ import java.util.List;
 @RestController()
 @RequestMapping("/product")
 public class ProductController {
-
     @Autowired
-    private ProductRepository repository;
+    private ProductService productService;
 
     @Autowired
     private ResourceLoader resourceLoader;
 
+    @CrossOrigin
+    @GetMapping(value = "")
+    public List<Product> findAll(@PageableDefault() Pageable pageable) {
+        return productService.getProducts(pageable);
+    }
+
     @GetMapping(value = "/{id}")
     public Product findById(@PathVariable("id") Long id) {
-        return repository.findById(id).orElse(null);
+        return productService.findById(id);
     }
 
     @CrossOrigin
-    @GetMapping()
-    public List<Product> findByDescription(@RequestParam String search) {
-        return repository.search(search);
+    @GetMapping(value = "/search/{name}")
+    public List<Product> findByName(@PathVariable("name") String name) {
+        return productService.findByName(name);
     }
 
     @CrossOrigin
-    @GetMapping(value = "/all")
-    public List<Product> findAll(@PageableDefault() Pageable pageable) {
-        return repository.findAll(pageable).getContent();
+    @PostMapping(value = "/index")
+    public Product index(@RequestBody Product product) {
+        return productService.save(product);
+    }
+
+    @CrossOrigin
+    @DeleteMapping(value = "/delete/{id}")
+    public Product deleteById(@PathVariable("id") Long id) {
+        return productService.deleteById(id);
+    }
+
+    @CrossOrigin
+    @DeleteMapping(value = "/drop")
+    public void drop() {
+        productService.deleteAll();
     }
 
     @RequestMapping("/migrate")
     String migrate() {
-        if (repository.count() > 0) {
+        if (productService.count() > 0) {
             return "already migrated";
         }
 
@@ -48,7 +66,7 @@ public class ProductController {
 
             List<Product> products = ProductReader.readFile(inputStream);
             for (Product product : products) {
-                repository.save(product);
+                productService.save(product);
             }
             return "success";
         } catch (Exception e){
