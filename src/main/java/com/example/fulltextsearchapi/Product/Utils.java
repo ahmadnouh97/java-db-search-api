@@ -7,6 +7,7 @@ import org.json.simple.parser.JSONParser;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 
 public class Utils {
     public static ArrayList<HashMap<String, Object>> readJson(String path) {
@@ -25,5 +26,15 @@ public class Utils {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Properties readConfig() {
+        Properties properties = new Properties();
+        try (FileReader reader = new FileReader("config")) {
+            properties.load(reader);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return properties;
     }
 }

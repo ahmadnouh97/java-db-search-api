@@ -17,7 +17,7 @@ import com.example.fulltextsearchapi.Product.Exceptions.CollectionAlreadyExistsE
 
 @Service
 public class ProductService {
-    private Client client;
+    private final Client client;
     ProductService() {
         ArrayList<Node> nodes = new ArrayList<>();
         Properties config = Utils.readConfig();
