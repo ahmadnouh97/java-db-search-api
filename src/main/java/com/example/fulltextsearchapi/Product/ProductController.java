@@ -1,77 +1,63 @@
 package com.example.fulltextsearchapi.Product;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Pageable;
+import org.typesense.model.CollectionResponse;
+import org.typesense.model.SearchResult;
 
-import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController()
-@RequestMapping("/product")
 public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @Autowired
-    private ResourceLoader resourceLoader;
-
     @CrossOrigin
-    @GetMapping(value = "")
-    public List<Product> findAll(@PageableDefault() Pageable pageable) {
-        return productService.getProducts(pageable);
-    }
-
-    @GetMapping(value = "/{id}")
-    public Product findById(@PathVariable("id") Long id) {
-        return productService.findById(id);
+    @PostMapping(value = "/products/index")
+    public List<HashMap<String, Object>> index(@RequestBody List<Product> products) {
+        return productService.index(products);
     }
 
     @CrossOrigin
-    @GetMapping(value = "/search/{name}")
-    public List<Product> findByName(@PathVariable("name") String name) {
-        return productService.findByName(name);
+    @GetMapping(value = "/products/collection")
+    public CollectionResponse info() {
+        return productService.getCollection();
     }
 
     @CrossOrigin
-    @PostMapping(value = "/index")
-    public Product index(@RequestBody Product product) {
-        return productService.save(product);
+    @GetMapping(value = "/products/documents")
+    public SearchResult getDocuments() {
+        return productService.getDocuments();
     }
 
     @CrossOrigin
-    @DeleteMapping(value = "/delete/{id}")
-    public Product deleteById(@PathVariable("id") Long id) {
-        return productService.deleteById(id);
+    @PostMapping(value = "/products/search")
+    public SearchResult search(@RequestBody Map<String, String> body) {
+        return productService.search(
+                body.get("query"),
+                body.get("filter"),
+                body.get("sort"),
+                body.get("facet")
+        );
+    }
+
+    @CrossOrigin
+    @PostMapping(value = "/create")
+    public CollectionResponse create(@RequestBody Map<String, String> body) {
+        return productService.create(body.get("name"));
     }
 
     @CrossOrigin
     @DeleteMapping(value = "/drop")
-    public void drop() {
-        productService.deleteAll();
+    public CollectionResponse drop(@RequestBody Map<String, String> body) {
+        return productService.drop(body.get("name"));
     }
 
-    @RequestMapping("/migrate")
-    String migrate() {
-        if (productService.count() > 0) {
-            return "already migrated";
-        }
-
-        try {
-            InputStream inputStream = new ClassPathResource("product.csv").getInputStream();
-
-            List<Product> products = ProductReader.readFile(inputStream);
-            for (Product product : products) {
-                productService.save(product);
-            }
-            return "success";
-        } catch (Exception e){
-            System.out.println("Unable to save product: " + e.getMessage());
-            return "error";
-        }
+    @CrossOrigin
+    @PostMapping(value = "/products/migrate")
+    public String migrate(@RequestBody Map<String, String> body) {
+        return productService.migrate(body.get("path"));
     }
 }
