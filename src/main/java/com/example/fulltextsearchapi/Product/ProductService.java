@@ -1,7 +1,9 @@
 package com.example.fulltextsearchapi.Product;
 
+import com.example.fulltextsearchapi.SearchConfig;
 import com.example.fulltextsearchapi.Product.Exceptions.CollectionMigrationException;
 import com.example.fulltextsearchapi.Product.Exceptions.CollectionNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.typesense.api.*;
 import org.typesense.model.*;
@@ -11,21 +13,22 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
 
 import com.example.fulltextsearchapi.Product.Exceptions.CollectionAlreadyExistsException;
 
 @Service
 public class ProductService {
     private final Client client;
-    ProductService() {
+
+    @Autowired
+    ProductService(SearchConfig searchConfig) {
+
         ArrayList<Node> nodes = new ArrayList<>();
-        Properties config = Utils.readConfig();
         nodes.add(
                 new Node(
-                        config.getProperty("db.protocol"),
-                        config.getProperty("db.host"),
-                        config.getProperty("db.port")
+                        searchConfig.getProtocol(),
+                        searchConfig.getHost(),
+                        searchConfig.getPort()
                 )
         );
 
