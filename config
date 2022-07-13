@@ -1,3 +1,1 @@
-db.protocol=http
-db.host=localhost
-db.port=8108
+docker run --name postgres -e POSTGRES_PASSWORD=password -d postgres:alpine -p 5432:5432
